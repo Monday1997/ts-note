@@ -4,12 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:build": "tsc -w",
+    "dev:start": "nodemon --watch dist/desc js --exec node ./dist/desc/index.js",
+    "start": "concurrently npm:dev:*",
+    "tsc": "tsc src/desc/index.ts --target ES5 -2 --experimentaldescorators",
+    "curl": "ts-node src/controller/HomeController.ts",
+    "beginapp": "nodemon --watch src/ -e ts --exec ts-node ./src/expressapp.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^9.1.2"
+    "@types/reflect-metadata": "^0.1.0",
+    "concurrently": "^9.1.2",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

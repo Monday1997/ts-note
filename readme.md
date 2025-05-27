@@ -1,4 +1,5 @@
 ##   tsconfig.json
+父子类型的转换注意一下
 
 ### 控制输入输出文件
 
@@ -645,4 +646,130 @@ go(8989)
 ## 装饰器
 
 使用场景：添加日志
+
+tsconfig.json打开装饰器限制
+
+```json
+"experimentalDecorators": true,                   /* Enable experimental support for legacy experimental decorators. */
+"emitDecoratorMetadata": true,
+```
+
+### 类装饰器
+
+#### 泛型工程类继承装饰器
+
+```ts
+function FirstDesc<T extends {new(...args:any):any}>(cus:T) {
+    return class  extends cus{
+        constructor(...args:any[]){
+            super(args)
+            console.log('日志信息',cus.name);
+        }
+    }
+}
+
+
+
+@FirstDesc
+export class CustomerServices {
+    constructor(public name:string) { 
+        console.log(this.name);
+        
+    }
+    buy() {
+        console.log(this.name + '购买');
+    }
+    placeOrder() {
+        console.log(this.name + '下单购买');
+
+    }
+}
+new CustomerServices('名字')
+
+```
+
+#### 方法装饰器
+
+```ts
+/**
+ * 
+ * @param targetClassPrototype 
+ * @param methodname 
+ * @param methodDecri 
+ */
+function fnDesc(targetClassPrototype:any,methodname:string,methodDecri:TypedPropertyDescriptor<any>){
+    console.log("🚀 ~ fnDesc ~ targetClassPrototype:", targetClassPrototype)
+    console.log("🚀 ~ fnDesc ~ methodname:", methodname)
+    console.log("🚀 ~ fnDesc ~ methodDecri:", methodDecri)
+    methodDecri.value()
+
+}
+class CustomerServices {
+    constructor(public name:string) { 
+        console.log(this.name);
+        
+    }
+     
+    @fnDesc
+    buy() {
+        console.log(this.name + '购买');
+    }
+    placeOrder() {
+        console.log(this.name + '下单购买');
+
+    }
+}
+export {}
+```
+
+
+
+拦截获取某个类
+
+![image-20250521194307631](readme.assets/image-20250521194307631.png)
+
+![image-20250521194347871](readme.assets/image-20250521194347871.png)
+
+#### 属性装饰器
+
+参数，类的原型，属性名
+
+
+
+## 使用元数据
+
+为了帮助类、方法属性实现一定功能而附加的数据
+
+```js
+pnpm add reflect-meatdata -D
+```
+
+自定义元数据、内置元数据
+
+
+
+```ts
+import 'reflect-metadata'
+type MyPropDecorator = (target:any,key:string|symbol)=>void
+export function Inject(injectid:string):MyPropDecorator{
+    return (target,key)=>{
+        // 拿到这个装饰器上修饰这个属性的类型
+        let propClass =  Reflect.getMetadata("design:type",target,key)
+        propClass = new propClass()
+    }
+}
+
+class mouth{
+    shetou:string
+    yacchi:string
+    constructor(){
+        console.log('这是嘴巴');
+        
+    }
+}
+class Student{
+    @Inject("mouth")
+    private mouth:mouth
+}
+```
 
