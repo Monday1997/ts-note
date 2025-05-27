@@ -8,11 +8,10 @@ export function Inject(injectid:string):MyPropDecorator{
     }
 }
 
-class mouth{
-    shetou:string
-    yacchi:string
-    constructor(){
-        console.log('这是嘴巴');
+class userService{
+    name:string='名字'
+    public login(){
+        console.log(this.name+'登录');
         
     }
 }
@@ -34,11 +33,13 @@ function ControllerDecorator(rootPath:string){
 
 // 装饰器顺序 属性-》方法参数-》方法-》类
 @ControllerDecorator('/')
-class Student{
-    @Inject("mouth")
-    private mouth:mouth
+class UserController{
+    @Inject("userService")
+    private userService?:userService
 
     @get("/login")
-    public run(){}
+    public login():void{
+        
+    }
 }
 
