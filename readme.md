@@ -12,6 +12,8 @@ tsc运行即可
 
 ## 类型
 
+把值定义为父类，则可以接收他所有的子类类型。 
+
 ### Object(注意大小写)
 
 Object类型不能赋值null\undefined
@@ -645,6 +647,10 @@ go(8989)
 
 ## 装饰器
 
+// 装饰器顺序 属性-》(参数-》方法)-》构造器参数装饰器 -》类
+
+
+
 使用场景：添加日志
 
 tsconfig.json打开装饰器限制
@@ -749,27 +755,117 @@ pnpm add reflect-meatdata -D
 
 
 ```ts
+
 import 'reflect-metadata'
-type MyPropDecorator = (target:any,key:string|symbol)=>void
-export function Inject(injectid:string):MyPropDecorator{
-    return (target,key)=>{
-        // 拿到这个装饰器上修饰这个属性的类型
-        let propClass =  Reflect.getMetadata("design:type",target,key)
-        propClass = new propClass()
+
+class userService {
+    name: string = '名字'
+    public login() {
+        console.log(this.name + '登录');
+
     }
 }
 
-class mouth{
-    shetou:string
-    yacchi:string
-    constructor(){
-        console.log('这是嘴巴');
-        
+type MyPropDecorator = (target: any, key: string | symbol) => void
+// propertyDecorator
+function Inject(injectid: string): MyPropDecorator {
+    return (target, key) => {
+        // 拿到这个装饰器上修饰这个属性的类型
+        let propClass = Reflect.getMetadata("design:type", target, key)
+        const propClassObj = new propClass()
     }
 }
-class Student{
-    @Inject("mouth")
-    private mouth:mouth
+
+type TMyMethodDecorator = (target: any, methodName: string, dataProps: PropertyDescriptor) => void
+function get(path: string): TMyMethodDecorator {
+    return (targetPrototype, methodName, dataProps) => {
+        // 原型方法上定义一个元数据path
+        Reflect.defineMetadata("path", path, targetPrototype, methodName)
+        console.log("🚀 ~ return ~ methodName:", methodName)
+        console.log("🚀 ~ return ~ targetPrototype:", targetPrototype)
+        console.log("🚀 ~ return ~ path:", path)
+    }
 }
+
+// 控制器装饰器获取装饰器上定义的元数据--此处是login22到login上
+function Controller(rootPath: string) {
+    return function <T extends { new(...args: any): any }>(targetClass: T) {
+        console.log("🚀 ~ <Textends{new ~ targetClass.prototype:", targetClass.prototype)
+        // tsconfig中的target改为es5才能够执行
+        Object.keys(targetClass.prototype).forEach(methodName => {
+            const result = Reflect.getMetadata("path",targetClass.prototype,methodName)
+            console.log("🚀 ~ Object.keys ~ methodName:", result)
+        })
+    }
+}
+
+@Controller('/')
+class UserController {
+    @Inject("userService")
+    private userService?: userService
+
+    @get("/login22")
+    public login(): void {
+
+    }
+}
+
+
+```
+
+## 参数装饰器
+
+![image-20250527211639098](readme.assets/image-20250527211639098.png)
+
+## 构造器参数装饰器
+
+这里的target是类 其他装饰器是原型
+
+![image-20250527212509679](readme.assets/image-20250527212509679.png)
+
+getMetadata将构造器上的参数类型拼装成数组
+
+使用
+
+![image-20250527213947053](readme.assets/image-20250527213947053.png)
+
+![image-20250528195042670](readme.assets/image-20250528195042670.png)
+
+
+
+### :boxing_glove: 直接定义 
+
+![image-20250528195607142](readme.assets/image-20250528195607142.png)
+
+
+
+### :arrow_down_small: 获取所有元数据（方法）
+
+ Reflect.getMetadataKeys(People.prototype,"getFullName")
+
+以下三个原有的两个自定义的
+
+返回类型，参数类型，方法类型（此处为function）
+
+属性的话内置只有design:type
+
+![image-20250528201833774](readme.assets/image-20250528201833774.png)
+
+## :basketball_woman: nest中依赖注入
+
+创建与使用分离
+
+依赖注入：外部创建好 然后在里面使用。即赋值，外部给内部属性赋值inject
+
+#  部分实战场景
+
+## :ballot_box_with_check: 去除尾巴tail
+
+```ts
+type RemoveTail<S extends string,tail extends string> = 
+S extends `${infer P}${tail}`?P:S
+
+export let data: RemoveTail<'gogo/data/:data2','/:data2'>
+let data2: RemoveTail<'gogo/data/:data2',`/${string}`>
 ```
 

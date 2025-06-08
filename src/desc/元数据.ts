@@ -31,7 +31,7 @@ function ControllerDecorator(rootPath:string){
     }
 }
 
-// 装饰器顺序 属性-》方法参数-》方法-》类
+// 装饰器顺序 属性-》参数-》方法-》类
 @ControllerDecorator('/')
 class UserController{
     @Inject("userService")
