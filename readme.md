@@ -1,5 +1,6 @@
+
+
 ##   tsconfig.json
-父子类型的转换注意一下
 
 ### 控制输入输出文件
 
@@ -12,11 +13,17 @@ tsc运行即可
 
 ## 类型
 
+### 父子类型转化
+
+子类不能赋值为父类（子不类父）
+
 把值定义为父类，则可以接收他所有的子类类型。 
 
 ### Object(注意大小写)
 
-Object类型不能赋值null\undefined
+object出基础数据外能用（对象数组）
+
+Object类型不能赋值null\undefined --严格模式下
 
 {}即Object
 
@@ -99,11 +106,25 @@ interface INAME  {
 type G = keyof INAME // “name”|"age"|typeof symid
 ```
 
-![image-20250414203710138](readme.assets/image-20250414203710138.png)
+条件类型分发
+```ts
+type dog={
+    type:string,
+    age:number,
+    name:string
+}
+// type TDogAttr = keyof dog
+// let a:TDogAttr='name'
+type TAllKeys<T> = T extends any?T:never
+type TDogAttr = TAllKeys<keyof dog>
+const a:TDogAttr='age'
+```
 
-能接收undefined的值
 
-目前只有any\undefined\unknow
+
+### 能接收undefined的值
+
+目前只有any\undefined\unknow(严格模式下)
 
 ### interface&type
 
@@ -112,21 +133,40 @@ type G = keyof INAME // “name”|"age"|typeof symid
 - type交叉类型
 - interface可以合并申明
 
+
+
 ### 可变元组
 
-![image-20250417200637408](readme.assets/image-20250417200637408.png)
-
-![image-20250417200719692](readme.assets/image-20250417200719692.png)
+```ts
+/**
+ * 可变元组
+ */
+const custom:[string,number,number,...any[]] = ['sdf',123,123,'sdf',44544,999]
+const [string1,number1,...rest]:[string,number,...any[]] = custom
+```
 
 ### class
 
-![image-20250417201252714](readme.assets/image-20250417201252714.png)
+private: 
 
-静态成员....
+- 声明私有成员，**仅在当前类内部访问**。 
 
-静态方法
+- 实例、子类、外部代码均**无法访问**。
 
-![image-20250417201754155](readme.assets/image-20250417201754155.png)
+static
+
+-  **属于类本身而非实例** 
+
+```ts
+class People{
+    addr:string='黄土高坡'
+    constructor(public name:string,public age:number){
+
+    }
+}
+const people = new People('名字',12)
+console.log(people)
+```
 
 静态成员实现单例模式 
 
@@ -139,11 +179,13 @@ type G = keyof INAME // “name”|"age"|typeof symid
 类似下方,用如下方式完成双向映射
 
 ```js
-const week1 = ((week)=>{
-    week[week['moday']=1] = 'monday'
+const week:Record<string,any> = ((()=>{
+    const week:Record<string,any> = {}
+    week[week['monday']=1] = 'monday'
     return week
-})(week={})
-console.log(week1)
+})())
+console.log(week.monday);
+console.log(week[1]);
 ```
 
 ```ts
@@ -197,6 +239,8 @@ jsx:"preset" 支持jsx语法（react-native等值）
 include类型指定的搜索范围 
 
 ## 类型守卫
+
+**联合类型中如何获得类型提示**
 
 杂七杂八
 
@@ -306,6 +350,8 @@ arr1.localeCompare(arr2,'zh-CN')
 
 ## 合并交叉类型
 
+注意会被覆盖 有缺陷
+
 ```ts
 function cross<T extends object, U extends object>(obj1:T,obj2:U):T&U{
     const combined= {} as T&U 
@@ -370,7 +416,7 @@ type TCustKey = {
 
 ![image-20250428205235859](readme.assets/image-20250428205235859.png)
 
-
+提取相同的key类型
 
 ```ts
 type A = {age:number,name:string}
@@ -417,7 +463,7 @@ let one = cross({},{})
 let two = cross({},{},{})
 ```
 
-## 扁平化数据
+## 扁平化数据 
 
 ```js
 type Modules = {
@@ -529,9 +575,21 @@ let student:Tin = {
 
   后面这个as很关键，可以把所有类型给带出来
 
-![image-20250507203504282](readme.assets/image-20250507203504282.png)
+```ts
+type a = {
+    name:string,
+    age:number
+}
+type TOmit<T,K extends keyof T> = {
+    [P in keyof T as P extends K?never :P]:T[P]
+}
+type c = TOmit<a,'age'>
 
-![image-20250507203630995](readme.assets/image-20250507203630995.png)
+//进阶
+type TOmit<T,K extends keyof T> = {
+    [P in keyof T as Exclude<P,K>]:T[P]
+}
+```
 
 
 
@@ -668,7 +726,7 @@ tsconfig.json打开装饰器限制
 function FirstDesc<T extends {new(...args:any):any}>(cus:T) {
     return class  extends cus{
         constructor(...args:any[]){
-            super(args)
+            super(...args)
             console.log('日志信息',cus.name);
         }
     }
