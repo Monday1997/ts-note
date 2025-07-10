@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /*  .container {
+        display: grid;
+        grid-template-columns: 40px 50px auto 50px 40px;
+        grid-template-rows: 25% 100px auto;
+      } */
+      /* repeat */
+      /* .container {
+        display: grid;
+        grid-template-columns:repeat(5 40px);
+        grid-template-rows: 25% 100px auto;
+      } */
+      /* .container {
+        display: grid;
+        grid-template-columns: 1fr 50px auto 1fr 1fr;
+        grid-template-rows: 25% 100px auto;
+      } */
+      .item-a {
+        grid-area: header;
+      }
+      .item-b {
+        grid-area: main;
+      }
+      .item-c {
+        grid-area: sidebar;
+      }
+      .item-d {
+        grid-area: footer;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 50px 50px 50px 50px;
+        grid-template-rows: repeat(4 1fr);
+        grid-template-areas:
+          "header header header header"
+          "main main . sidebar"
+          "footer footer footer footer";
+      }
+      .container>div{
+        border:1px solid red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="item-a">aaaa</div>
+      <div class="item-b">bbbb</div>
+      <div class="item-c">ccccc</div>
+      <div class="item-d">dddd</div>
+    </div>
+  </body>
+</html>
+
+

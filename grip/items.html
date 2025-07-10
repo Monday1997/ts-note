@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /*   .item-a {
+        grid-area: header;
+      }
+      .item-b {
+        grid-area: main;
+      }
+      .item-c {
+        grid-area: sidebar;
+      }
+      .item-d {
+        grid-area: footer;
+      } */
+      .container {
+        display: grid;
+        gap: 40px;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: 50px 80px auto;
+        /* 这个顶下面两个同时设置 */
+        /* place-items: center; */
+        /* 区分下面两个 这个是控制总体内容位置的 */
+        /* justify-content: end; */
+        justify-items: stretch; 
+        /* align-items: center; */
+        
+  
+      }
+
+      .container div {
+        border: 1px solid red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="item-a">aaaa</div>
+      <div class="item-b">bbbb</div>
+      <div class="item-c">ccccc</div>
+      <div class="item-d">dddd</div>
+    </div>
+  </body>
+</html>

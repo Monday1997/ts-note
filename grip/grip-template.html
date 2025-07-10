@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .item-a {
+        grid-area: header;
+      }
+      .item-b {
+        grid-area: main;
+      }
+      .item-c {
+        grid-area: sidebar;
+      }
+      .item-d {
+        grid-area: footer;
+      }
+      .container {
+        display: grid;
+        grid-template:
+          "header header header" 25px
+          "footer footer footer" 85px
+          / auto 50px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="item-a">aaaa</div>
+      <div class="item-b">bbbb</div>
+      <div class="item-c">ccccc</div>
+      <div class="item-d">dddd</div>
+      <!--  <div>123</div>
+      <div>456</div>
+      <div>789</div>
+      <div>101</div>
+
+      <div>123</div>
+      <div>456</div>
+      <div>789</div>
+      <div>101</div>
+
+      <div>123</div>
+      <div>456</div>
+      <div>789</div>
+      <div>101</div>
+
+      <div>456</div>
+      <div>789</div>
+      <div>101</div> -->
+    </div>
+  </body>
+</html>
