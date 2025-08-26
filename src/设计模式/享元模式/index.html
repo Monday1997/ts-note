@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    // 公共属性提取，例如这里的上传类型和删除功能
+    const Upload = function (type) {
+      this.uploadType = type;
+    };
+    // 还有一个隐藏的dom属性通过setExternalState进行设置
+    Upload.prototype.del = function (id) {
+      uploadManager.setExternalState(id, this);
+      return this.dom.parentNode.removeChild(this.dom);
+    };
+    // 对于提取的公共属性避重复被创建
+    const uploadFactory = (function () {
+      const createFlyWeightObj = {};
+      return {
+        create(uploadType) {
+          if (createFlyWeightObj[uploadType]) {
+            return createFlyWeightObj[uploadType];
+          }
+          return (createFlyWeightObj[uploadType] = new Upload(uploadType));
+        },
+      };
+    })();
+
+    const uploadManager = (function () {
+      // 缓存对象 
+      const uploadDatabase = {};
+      return {
+        add(id, uploadType, fileName, fileSize) {
+          const flyWeightObj = uploadFactory.create(uploadType);
+          const dom = document.createElement("div");
+          dom.innerHTML =
+            `<span>名称${fileName}</span>` +
+            `<button class="delFile">del</button>`;
+          dom.querySelector(".delFile").onclick = function () {
+            flyWeightObj.del(id);
+          };
+          document.body.appendChild(dom);
+          uploadDatabase[id] = {
+            fileName,
+            fileSize,
+            dom,
+          };
+          return flyWeightObj;
+        },
+        setExternalState: function (id, flyWeightObj) {
+          var uploadData = uploadDatabase[id];
+          for (var i in uploadData) {
+            flyWeightObj[i] = uploadData[i];
+          }
+        },
+      };
+    })()
+
+    var id = 0;
+    window.startUpload = function (uploadType, files) {
+      for (var i = 0, file; (file = files[i++]); ) {
+        var uploadObj = uploadManager.add(
+          ++id,
+          uploadType,
+          file.fileName,
+          file.fileSize
+        );
+      }
+    };
+
+    startUpload("plugin", [
+      {
+        fileName: "1.txt",
+        fileSize: 1000,
+      },
+      {
+        fileName: "2.html",
+        fileSize: 3000,
+      },
+      {
+        fileName: "3.txt",
+        fileSize: 5000,
+      },
+    ]);
+  </script>
+</html>

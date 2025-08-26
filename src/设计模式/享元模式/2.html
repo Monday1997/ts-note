@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    function upload(type, list) {
+      list.forEach((item, index) => {
+        const { fileName, fileSize } = item;
+        const dom = document.createElement("div");
+        dom.innerHTML =
+          `<span>名称${fileName}</span>` +
+          `<span>文件大小${fileSize}</span>`
+          `<button class="delFile">del</button>`;
+        dom.querySelector(".delFile").onclick = function () {
+          this.dom.parentNode.removeChild(this.dom);
+        };
+        document.body.appendChild(dom);
+      });
+    }
+
+    upload("plugin", [
+      {
+        fileName: "1.txt",
+        fileSize: 1000,
+      },
+      {
+        fileName: "2.html",
+        fileSize: 3000,
+      },
+      {
+        fileName: "3.txt",
+        fileSize: 5000,
+      },
+    ]);
+  </script>
+</html>
