@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<div id="go"></div>
+</body>
+<script>
+var before = function( fn, beforefn ){
+  return function(){
+    beforefn.apply( this, arguments );
+    return fn.apply( this, arguments );
+  }
+}
+
+document.getElementById = before( document.getElementById, function(id){console.log('id is ',id)} );
+const data = document.getElementById('go')
+
+var validateBefore = function( fn, beforefn ){
+  return async function(){
+    let result = beforefn.apply( this, arguments );
+    if(typeof result.then === 'function'){
+      result = await result
+    }
+    if(!result){
+      return
+    }
+    return fn.apply( this, arguments );
+  }
+}
+
+const userData = {
+  name:'123',
+  age:''
+}
+function submitFn(){
+  console.log('这是提交功能')
+}
+function validate(){
+  if(userData.name === ''){
+    console.error('名字不能为空')
+    return false
+  }
+  else if(userData.age === ''){
+    console.error('年龄不能为空')
+    return false
+  }
+}
+/* function validate(){
+  return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+      if(userData.name === ''){
+            reject('名字不能为空')
+      }
+      else if(userData.age === ''){
+        reject('年龄不能为空')
+      }
+      resolve('ok')
+    },1000)
+
+  })
+
+} */
+const submit = validateBefore(submitFn,validate)
+submit()
+</script>
+</html>

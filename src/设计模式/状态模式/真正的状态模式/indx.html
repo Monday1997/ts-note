@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>状态模式示例</title>
+    <style>
+        .light {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+        }
+        .light.off {
+            background: #3a3a3a;
+            box-shadow: 0 0 10px #1a1a1a;
+        }
+        .light.weakLight {
+            background: #555;
+            box-shadow: 0 0 20px #555;
+        }
+        .light.on {
+            background: #ffdd00;
+            box-shadow: 0 0 30px #ffdd00;
+        }
+        .light.strongLight {
+            background: #fff;
+            box-shadow: 0 0 40px #fff;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>灯光状态控制</h1>
+    <div class="light" id="lightBulb"></div>
+    <div>当前状态: <span id="currentState">关闭</span></div>
+    <div id="currentAction">操作: 切断电源</div>
+    <div>切换次数: <span id="changeCount">1</span></div>
+    <button id="changeStateBtn">切换状态</button>
+
+    <script src="./index.js"></script> <!-- 假设上面的TS代码编译为JS -->
+    <script>
+        // 使用导出的函数
+        const light = createLightUI();
+    </script>
+</body>
+</html>
