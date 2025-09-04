@@ -36,6 +36,10 @@ class CircleEvent<T> implements IBaseState<TState<T>> {
         this.changeState(this.stateEvent[this.stateIndex].value)
     }
     async changeState(state: T) {
+        if(this.state === Pending){
+            console.log('state处于pending状态，暂无法操作');
+            return
+        }
         this.state = Pending
         this.stateIndex = this.stateEvent.findIndex(item => item.value === state)
         this.stateLabel = this.stateEvent[this.stateIndex].label || state as string
@@ -91,7 +95,7 @@ const btn = document.createElement('button')
 btn.onclick = () => {
     light.execState()
 }
-btn.innerHTML = '这是一个按钮'
+btn.innerHTML = '切换灯光'
 document.body.append(btn)
 
 const btn2 = document.createElement('button')
@@ -100,5 +104,3 @@ btn2.onclick = () => {
 }
 btn2.innerHTML = '关灯'
 document.body.append(btn2)
-
-
