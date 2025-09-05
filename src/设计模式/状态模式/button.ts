@@ -8,7 +8,8 @@ interface IBaseState<T> {
 type TStateSortList<T> = {
     label: string,
     value: T,
-    event: (dat: IBaseState<TState<T>>) => (void | Promise<any>)
+    event: (dat: IBaseState<TState<T>>) => (void | Promise<any>),
+    cancel?:Function
 }[]
 function isPromise(result: any): result is Promise<any> {
     return result?.then && typeof result.then === 'function'
@@ -17,6 +18,8 @@ class CircleEvent<T> implements IBaseState<TState<T>> {
     state: TState<T>
     stateLabel: string
     stateIndex: number = 0
+    private changeBeforState:T //非强行介入前提下，类当前所属的状态（用于区别pending）
+    private userForce: TState<T> | null = null
     private queueList: Function[] = []
     private stateEvent: TStateSortList<T>
     constructor(stateEvent: TStateSortList<T>) {
@@ -25,35 +28,77 @@ class CircleEvent<T> implements IBaseState<TState<T>> {
         this.stateLabel = stateEvent[0].label || this.state as string
     }
     execState() {
-        if (this.state === Pending ) {
-            this.queueList.push(()=>{
+        if (this.state === Pending) {
+            this.queueList.push(() => {
                 this.execState()
             })
             return
         }
-        const stateIndex = this.stateIndex + 1
-        this.stateIndex = stateIndex > this.stateEvent.length - 1 ? 0 : stateIndex
-        this.changeState(this.stateEvent[this.stateIndex].value)
+        const nextStateEvent = this.getStateEventByChoice(this.state,'next')
+        this.changeState(nextStateEvent.value)
     }
-    async changeState(state: T) {
-        if(this.state === Pending){
-            console.log('state处于pending状态，暂无法操作');
-            return
+    async changeState(state: T, { pendingFn, force }: { pendingFn?: Function, force?: boolean } = {}) {
+        try {
+            if(!force){
+                this.changeBeforState = state
+            }
+            if (this.state === Pending && !force) {
+                console.log('state处于pending状态，暂无法操作');
+                pendingFn && pendingFn()
+                return
+            } else if (this.state === Pending && force) {
+                // 说明上一个还没结束
+                this.userForce = state
+                const stateEvent = this.getStateEventByChoice(this.changeBeforState,'cur')
+                stateEvent.cancel&&stateEvent.cancel()
+            }
+            this.state = Pending
+            const result = this.stateEvent[this.getStateIndexByState(state)].event({
+                state: this.state,
+                stateIndex: this.stateIndex,
+                stateLabel: this.stateLabel
+            })
+            if (isPromise(result)) {
+                await result
+            }
+            if (this.userForce && !force) {
+                throw new Error(`强行介入${this.userForce}`)
+            }
+            // 执行完了才进入下一个状态
+            this.state = state
+            this.stateIndex = this.getStateIndexByState(state)
+            this.stateLabel = this.stateEvent[this.stateIndex].label || state as string
+            const next = this.queueList.shift()
+            next && next()
+        } catch (error) {
+            // state状态回退
+            this.state = this.getStateEventByChoice(state,'pre').value
+            const stateLabel = this.getStateEventByChoice(state,'cur').label
+            console.error(`状态转为${stateLabel}失败：`, error)
+        } finally {
+            //  让上一个去结束userForce
+            if (!force && this.userForce) {
+                this.userForce = null
+            }
         }
-        this.state = Pending
-        this.stateIndex = this.stateEvent.findIndex(item => item.value === state)
-        this.stateLabel = this.stateEvent[this.stateIndex].label || state as string
-        const result = this.stateEvent[this.stateIndex].event({
-            state: this.state,
-            stateIndex: this.stateIndex,
-            stateLabel: this.stateLabel
-        })
-        if (isPromise(result)) {
-            await result
+    }
+    getStateEventByChoice(state: TState<T>, choiceType: 'next' | 'pre' | 'cur') {
+        let stateIndex = this.getStateIndexByState(state)
+        const obj = {
+            next: () => {
+                stateIndex += 1
+                return stateIndex > this.stateEvent.length - 1?0:stateIndex
+            },
+            pre: ()=>{
+            stateIndex -= 1
+            return stateIndex < 0?this.stateEvent.length - 1:stateIndex
+            },
+            cur: ()=>stateIndex
         }
-        this.state = state
-        const next = this.queueList.shift()
-        next && next()
+        return this.stateEvent[obj[choiceType]()] 
+    }
+    getStateIndexByState(sate: TState<T>): number {
+        return this.stateEvent.findIndex(item => item.value === sate)
     }
 }
 
@@ -68,25 +113,29 @@ const lightEventList: TStateSortList<Tstate> = [
     {
         label: '开灯', value: 'on', event(data) {
             console.log('开灯');
-            
-            // return new Promise(r => {
-            //     console.log('准备状态', data.state);
-            //     setTimeout(() => {
-            //         console.log('完成关灯')
-            //         r('ok')
-            //     }, 1000)
-            // })
+
+            return new Promise((r) => {
+                console.log('当前数据', data)
+                setTimeout(() => {
+                    r('ok')
+                    console.log('执行完了')
+                }, 1000)
+            })
+        },cancel(){
+            console.warn('我要取消了')
         }
     },
-    { label: '弱光', value: 'weakLight', event(data) { 
-         return new Promise(r => {
+    {
+        label: '弱光', value: 'weakLight', event(data) {
+            return new Promise((_, rj) => {
                 console.log('准备状态', data.state);
                 setTimeout(() => {
                     console.log('切到弱光')
-                    r('ok')
+                    rj('切换失败')
                 }, 1000)
             })
-         } },
+        }
+    },
     { label: '强关', value: 'strongLight', event() { console.log('切到强光') } }
 ]
 
@@ -100,7 +149,7 @@ document.body.append(btn)
 
 const btn2 = document.createElement('button')
 btn2.onclick = () => {
-    light.changeState('off')
+    light.changeState('off', { force: true })
 }
 btn2.innerHTML = '关灯'
 document.body.append(btn2)
